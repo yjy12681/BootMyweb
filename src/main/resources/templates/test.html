@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Display</title>
+    <style>
+        .category {
+            display: inline-block;
+            margin: 10px;
+            vertical-align: top;
+        }
+
+        .category button {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<div class="category" id="category-container"></div>
+
+<script>
+    let categories = []; 
+
+    function fetchCategories(callback) {
+        $.ajax({
+            type: "POST",
+            url: "testList",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            success: function(data) {
+                console.log("성공");
+                categories = data; 
+                callback(); 
+            },
+            error: function(err) {
+                console.error("카테고리 데이터 가져오기 실패:", err);
+            }
+        });
+    }
+
+    function displaySubCategories(parentId, afterElement) {
+        const subCategories = categories.filter(cat => cat.parent_id === parentId);
+        if (!subCategories.length) return;
+
+        const categoryDiv = document.createElement('div');
+        categoryDiv.classList.add('category');
+        
+        subCategories.forEach(cat => {
+            const button = document.createElement('button');
+            button.innerText = cat.name;
+            button.onclick = (event) => {
+                while (event.target.parentNode.nextSibling) {
+                    event.target.parentNode.nextSibling.remove();
+                }
+                displaySubCategories(cat.id, event.target.parentNode);
+            };
+            categoryDiv.appendChild(button);
+        });
+
+        if (afterElement) {
+            afterElement.insertAdjacentElement('afterend', categoryDiv);
+        } else {
+            document.getElementById('category-container').appendChild(categoryDiv);
+        }
+    }
+
+    // body 클릭 이벤트 리스너
+    document.body.addEventListener('click', function(event) {
+        if (!event.target.closest('.category button')) {
+            const container = document.getElementById('category-container');
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            displaySubCategories(0, null);
+        }
+    });
+
+    fetchCategories(function() {
+        displaySubCategories(0, null);
+    });
+
+</script>
+</body>
+</html>

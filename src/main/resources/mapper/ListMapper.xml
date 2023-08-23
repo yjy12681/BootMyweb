@@ -1,0 +1,23 @@
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.coding404.myweb.list.service.ListMapper">
+	<select id="testList" resultType="com.coding404.myweb.command.TestVO">
+		WITH RECURSIVE CategoryPath AS (
+    
+    SELECT id, name, parent_id, CAST(name AS CHAR(255)) AS path
+    FROM categories
+    WHERE name = '컴퓨터'
+    
+    UNION ALL
+    
+    
+    SELECT c.id, c.name, c.parent_id, CONCAT(cp.path, ' > ', c.name)
+    FROM categories c
+    JOIN CategoryPath cp ON c.parent_id = cp.id
+	)
+
+		SELECT * FROM CategoryPath;
+	</select>  
+  </mapper>
